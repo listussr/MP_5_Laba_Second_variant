@@ -613,12 +613,25 @@ bool entering_way()
 {
 	cout << "Enter the way you'd like to enter information" << endl;
 	cout << "if you want to use console - press '1'" << endl;
-	cout << "if you want to use file - press '2'" << endl;
-	string a;
-	getline(cin, a);
-	while (a != "1" && a != "2") { cout << "Incorrect input!" << endl; cin.ignore(buf_s, EOL); getline(cin, a); }
-	if (a == "1") return true;
-	else if (a == "2") return false;
+	cout << "if you want to use file - press '0'" << endl;
+	char symbol;
+	bool flag = true;
+	while (!(cin >> symbol) || flag) {
+		cin.clear();
+		if ((symbol == '0') && (cin.peek() == EOL)) {
+			flag = false;
+			return false;
+		}
+		else if ((symbol == '1') && (cin.peek() == EOL)) {
+			flag = false;
+			return true;
+		}
+		else {
+			flag = true;
+		}
+		while (cin.get() != EOL);
+		cout << "Do you want to continue? --> 1/0" << endl;
+	}
 }
 
 vector<date_calc> console_input() {
@@ -634,14 +647,14 @@ vector<date_calc> console_input() {
 	return vec;
 }
 
-vector<date_calc> file_input() {
+vector<date_calc> file_input(ifstream& in) {
 	vector<date_calc> inp;
 	date_calc a;
-	ifstream in("Text.txt");
 	while (!in.eof()) {
 		in >> a;
 		inp.push_back(a);
 	}
+	in.close();
 	return inp;
 }
 
@@ -702,24 +715,87 @@ void file_output(vector<date>& res, vector<date_calc>& beg, ofstream& out)
 	out.close();
 }
 
+bool string_format(string& name)
+{
+	regex reg(R"([\w]+[.][t][x][t])");
+	return regex_match(name, reg);
+}
+
+string entering_filename()
+{
+	cout << "Enter filename: " << endl;
+	string name;
+	bool flag = true;
+	while (flag)
+	{
+		cin >> name;
+		if (string_format(name)) flag = false;
+		else cout << "Incorrect format!" << endl;
+	}
+	return name;
+}
+
+bool changing_file()
+{
+	bool flag = true;
+	char symbol;
+	cout << endl << "Do you want to change input file?" << endl;
+	cout << "If you want  - press 1" << endl;
+	cout << "If not - press 0" << endl;
+	while (!(cin >> symbol) || flag) {
+		cin.clear();
+		if ((symbol == '0') && (cin.peek() == EOL)) {
+			flag = false;
+			return false;
+		}
+		else if ((symbol == '1') && (cin.peek() == EOL)) {
+			flag = false;
+			return true;
+		}
+		else {
+			flag = true;
+		}
+		while (cin.get() != EOL);
+		cout << "Do you want to continue? --> 1/0" << endl;
+	}
+}
+
 int main()
 {
 	users_guide();
 	bool iteration = true;
 	vector<date_calc> first_vec;
 	vector<date> result_vec;
+	static string name;
+	static int amount_of_iter = 0;
 	while (iteration) {
 		if (entering_way()) { 
 			system("cls");
 			first_vec = console_input(); 
 		}
-		else first_vec = file_input(); 
-		result_vec = result_of_calculation(first_vec);
-		if (choosing_output_way())
-			console_output(result_vec, first_vec);
-		else {
-			ofstream out("Output.txt");
-			file_output(result_vec, first_vec, out);
+		else  {
+			if (amount_of_iter = 0 || changing_file()) {
+				name = entering_filename();
+			}
+			ifstream in(name);
+			if (in.is_open()) {
+				first_vec = file_input(in);
+				amount_of_iter++;
+			}
+			else {
+				cout << "Incorrect filename!" << endl;
+				name.clear();
+				amount_of_iter = 0;
+			}
+		}
+		if (amount_of_iter > 0) {
+			result_vec = result_of_calculation(first_vec);
+			if (choosing_output_way())
+				console_output(result_vec, first_vec);
+			else {
+				ofstream out("Output.txt");
+				file_output(result_vec, first_vec, out);
+			}
 		}
 		iteration = continue_check();
 		system("cls");
