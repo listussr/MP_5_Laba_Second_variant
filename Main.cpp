@@ -419,6 +419,12 @@ class date_calc {
 		}
 	}
 
+	bool correct_format(string& inp)
+	{
+		regex reg(R"([0-3][0-9][.][0-1][0-9][.][0-9][0-9][0-9][0-9][ ][0-3][0-9][.][0-1][0-9][.][0-9][0-9][0-9][0-9])");
+		return regex_match(inp, reg);
+	}
+
 public:
 	date_calc() {}
 
@@ -494,29 +500,31 @@ ofstream& operator << (ofstream& out, date& ref) {
 ifstream& operator >> (ifstream& in, date_calc& ref){
 	string line;
 	getline(in, line);
-	if (ref.check_file_years(line) && ref.check_file_monthes(line) && ref.check_file_day_format(line))
-	{
-		string year1s, year2s, month1s, month2s, day1s, day2s;
-		for (int i = 6; i <= 9; i++) year1s.push_back(line[i]);
-		for (int i = 17; i <= 20; i++) year2s.push_back(line[i]);
-		for (int i = 3; i <= 4; i++) month1s.push_back(line[i]);
-		for (int i = 14; i <= 15; i++) month2s.push_back(line[i]);
-		for (int i = 0; i <= 1; i++) day1s.push_back(line[i]);
-		for (int i = 11; i <= 12; i++) day2s.push_back(line[i]);
-		int year1 = stoi(year1s);
-		int year2 = stoi(year2s);
-		int month1 = stoi(month1s);
-		int month2 = stoi(month2s);
-		int day1 = stoi(day1s);
-		int day2 = stoi(day2s);
-		bool v = ref.check_v(year1);
-		if (ref.check_file_day_1(year1, month1, day1, v) && ref.check_file_day_2(year2, month2, day2, v)) {
-			ref.first.year(year1);
-			ref.first.month(month1);
-			ref.first.day(day1);
-			ref.second.year(year2);
-			ref.second.month(month2);
-			ref.second.day(day2);
+	if (ref.correct_format(line)) {
+		if (ref.check_file_years(line) && ref.check_file_monthes(line) && ref.check_file_day_format(line))
+		{
+			string year1s, year2s, month1s, month2s, day1s, day2s;
+			for (int i = 6; i <= 9; i++) year1s.push_back(line[i]);
+			for (int i = 17; i <= 20; i++) year2s.push_back(line[i]);
+			for (int i = 3; i <= 4; i++) month1s.push_back(line[i]);
+			for (int i = 14; i <= 15; i++) month2s.push_back(line[i]);
+			for (int i = 0; i <= 1; i++) day1s.push_back(line[i]);
+			for (int i = 11; i <= 12; i++) day2s.push_back(line[i]);
+			int year1 = stoi(year1s);
+			int year2 = stoi(year2s);
+			int month1 = stoi(month1s);
+			int month2 = stoi(month2s);
+			int day1 = stoi(day1s);
+			int day2 = stoi(day2s);
+			bool v = ref.check_v(year1);
+			if (ref.check_file_day_1(year1, month1, day1, v) && ref.check_file_day_2(year2, month2, day2, v)) {
+				ref.first.year(year1);
+				ref.first.month(month1);
+				ref.first.day(day1);
+				ref.second.year(year2);
+				ref.second.month(month2);
+				ref.second.day(day2);
+			}
 		}
 	}
 	else {
@@ -774,9 +782,11 @@ int main()
 			first_vec = console_input(); 
 		}
 		else  {
-			if (amount_of_iter = 0 || changing_file()) {
+			if(amount_of_iter == 0)
 				name = entering_filename();
-			}
+			if (amount_of_iter > 0 && changing_file()) 
+				name = entering_filename();
+
 			ifstream in(name);
 			if (in.is_open()) {
 				first_vec = file_input(in);
